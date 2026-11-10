@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Harshal Jagdale | React Profile Card</title>
+
+  <!-- Tailwind CSS, React 18 and Babel loaded from CDNs: zero build tools needed -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone@7.26.4/babel.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* Theme colors live in CSS variables. Swapped dynamically by useState */
+    .theme {
+      --bg-1: #c7d2fe;
+      --bg-2: #fbcfe8;
+      --bg-3: #a5f3fc;
+      --glass: rgba(255, 255, 255, 0.5);
+      --glass-border: rgba(255, 255, 255, 0.75);
+      --text: #1e1b4b;
+      --muted: #4c4f7a;
+      --chip: rgba(255, 255, 255, 0.65);
+      --accent: #4f46e5;
+      --accent-hover: #4338ca;
+      --shadow: 0 25px 60px rgba(79, 70, 229, 0.22);
+    }
+
+    .theme.dark {
+      --bg-1: #0b1120;
+      --bg-2: #1e1b4b;
+      --bg-3: #0f172a;
+      --glass: rgba(255, 255, 255, 0.08);
+      --glass-border: rgba(255, 255, 255, 0.18);
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --chip: rgba(255, 255, 255, 0.12);
+      --accent: #818cf8;
+      --accent-hover: #6366f1;
+      --shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+    }
+
+    .page {
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--bg-1), var(--bg-2), var(--bg-3));
+      position: relative;
+      overflow: hidden;
+      transition: background 0.4s ease;
+    }
+
+    /* Soft glowing blurred blobs behind the glass to make the blur effect stand out */
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    .blob-a {
+      width: 340px;
+      height: 340px;
+      background: #6366f1;
+      top: -60px;
+      left: -60px;
+    }
+    .blob-b {
+      width: 320px;
+      height: 320px;
+      background: #ec4899;
+      bottom: -60px;
+      right: -60px;
+    }
+    .blob-c {
+      width: 260px;
+      height: 260px;
+      background: #06b6d4;
+      top: 45%;
+      left: 65%;
+    }
+
+    .glass-card {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      padding: 36px 30px;
+      color: var(--text);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 32px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .glass-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .icon-btn {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--glass-border);
+      border-radius: 50%;
+      background: var(--chip);
+      font-size: 1.15rem;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+    .icon-btn:hover {
+      transform: scale(1.08);
+    }
+
+    .avatar-wrapper {
+      position: relative;
+    }
+
+    .avatar {
+      width: 108px;
+      height: 108px;
+      border-radius: 50%;
+      border: 3px solid var(--glass-border);
+      object-fit: cover;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #6366f1, #ec4899);
+      color: #fff;
+      font-size: 2.4rem;
+      font-weight: 700;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .badge-status {
+      position: absolute;
+      bottom: 2px;
+      right: 4px;
+      width: 18px;
+      height: 18px;
+      background: #10b981;
+      border: 3px solid var(--glass-border);
+      border-radius: 50%;
+    }
+
+    .chip {
+      padding: 5px 14px;
+      border-radius: 999px;
+      background: var(--chip);
+      border: 1px solid var(--glass-border);
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+    .chip:hover {
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .link {
+      flex: 1;
+      text-align: center;
+      padding: 10px 8px;
+      border-radius: 14px;
+      background: var(--chip);
+      border: 1px solid var(--glass-border);
+      color: var(--text);
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .link:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .like-btn {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 16px;
+      background: var(--accent);
+      color: #fff;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+    }
+    .like-btn:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+    .like-btn:active {
+      transform: scale(0.97);
+    }
+    .like-btn.on {
+      background: #e11d48;
+      box-shadow: 0 8px 20px rgba(225, 29, 72, 0.35);
+    }
+
+    button:focus-visible, a:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    // ---------------------------------------------------------------
+    // COMPONENT: ProfileCard
+    // PROPS: Inputs passed into component (name, role, bio, skills, avatar, links)
+    // STATE: Internal data that changes over time (isDark, liked, likes)
+    // ---------------------------------------------------------------
+    function ProfileCard({ name, role, bio, skills, avatar, links }) {
+      // STATE 1: Dark Mode Toggle (default: false = light mode)
+      const [isDark, setIsDark] = useState(false);
+
+      // STATE 2 & 3: Challenge Feature — Interactive Like Button with State Counter
+      const [liked, setLiked] = useState(false);
+      const [likes, setLikes] = useState(24);
+
+      // STATE 4: Fallback if avatar fails to load
+      const [imgFailed, setImgFailed] = useState(false);
+
+      // Compute Initials if image fails
+      const initials = name
+        .split(" ")
+        .map((w) => w[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase();
+
+      // Handler for like button interaction
+      function handleLike() {
+        setLiked(!liked);
+        setLikes(liked ? likes - 1 : likes + 1);
+      }
+
+      return (
+        <div className={isDark ? "theme dark" : "theme"}>
+          <div className="page flex items-center justify-center p-5">
+            {/* Ambient Background Glowing Blobs */}
+            <div className="blob blob-a"></div>
+            <div className="blob blob-b"></div>
+            <div className="blob blob-c"></div>
+
+            <article className="glass-card flex flex-col items-center text-center">
+              {/* Theme Toggle Button (State in Action) */}
+              <button
+                className="icon-btn"
+                onClick={() => setIsDark(!isDark)}
+                title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+                aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+              >
+                {isDark ? "☀️" : "🌙"}
+              </button>
+
+              {/* Profile Avatar with Fallback */}
+              <div className="avatar-wrapper">
+                {avatar && !imgFailed ? (
+                  <img
+                    className="avatar"
+                    src={avatar}
+                    alt={"Profile photo of " + name}
+                    onError={() => setImgFailed(true)}
+                  />
+                ) : (
+                  <div className="avatar" aria-hidden="true">{initials}</div>
+                )}
+                <span className="badge-status" title="Active / Open to Work"></span>
+              </div>
+
+              {/* Name & Role (from Props) */}
+              <h1 className="mt-4 text-2xl font-extrabold tracking-tight">{name}</h1>
+              <p className="mt-1 text-sm font-semibold tracking-wide" style={{ color: "var(--accent)" }}>
+                {role}
+              </p>
+
+              {/* Bio (from Props) */}
+              <p className="mt-4 text-sm leading-relaxed" style={{ color: "var(--muted)" }}>
+                {bio}
+              </p>
+
+              {/* Skills Array mapped to Chips (Props) */}
+              <ul className="mt-5 flex flex-wrap justify-center gap-2 p-0 list-none">
+                {skills.map((skill) => (
+                  <li key={skill} className="chip">{skill}</li>
+                ))}
+              </ul>
+
+              {/* Social and Portfolio Links */}
+              <div className="mt-6 flex w-full gap-2">
+                {links.map((link) => (
+                  <a
+                    key={link.label}
+                    className="link"
+                    href={link.url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {link.label}
+                  </a>
+                ))}
+              </div>
+
+              {/* Challenge Feature: Interactive Like Button with State */}
+              <div className="mt-5 w-full">
+                <button
+                  className={liked ? "like-btn on" : "like-btn"}
+                  onClick={handleLike}
+                  aria-pressed={liked}
+                >
+                  <span style={{ fontSize: "1.1rem" }}>{liked ? "❤️" : "🤍"}</span>
+                  <span>{liked ? "Liked" : "Like"} · {likes}</span>
+                </button>
+              </div>
+            </article>
+          </div>
+        </div>
+      );
+    }
+
+    // ---------------------------------------------------------------
+    // APP COMPONENT: Passing Props to ProfileCard
+    // ---------------------------------------------------------------
+    function App() {
+      return (
+        <ProfileCard
+          name="Harshal Jagdale"
+          role="Web Development & AI Intern at ApnoAI"
+          bio="Passionate about building modern web experiences with React. Enthusiastic about clean UI, glassmorphism design, and shipping real-world projects."
+          skills={["React", "JavaScript", "Tailwind CSS", "UI/UX"]}
+          avatar="https://avatars.githubusercontent.com/u/227536743?v=4"
+          links={[
+            { label: "GitHub", url: "https://github.com/harshaljagdale0222" },
+            { label: "Portfolio", url: "https://apnoai-task-1-harsh.vercel.app" },
+            { label: "Contact", url: "mailto:harshaljagdale40@gmail.com" },
+          ]}
+        />
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
